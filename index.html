@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Priznanice za Avans</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 32px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .form-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .receipt-preview {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        #receiptContent {
+            background: white;
+            padding: 40px;
+        }
+        
+        .receipt-header {
+            text-align: center;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .receipt-header h2 {
+            font-size: 28px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .receipt-number {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .info-section {
+            margin-bottom: 25px;
+        }
+        
+        .info-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+        
+        .info-row {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            width: 150px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .amount-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            color: white;
+        }
+        
+        .amount-label {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .amount-value {
+            font-size: 42px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .amount-words {
+            font-size: 14px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        .description-box {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .description-box .info-label {
+            margin-bottom: 8px;
+        }
+        
+        .description-box .info-value {
+            line-height: 1.6;
+        }
+        
+        .signature-area {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .signature-box {
+            width: 45%;
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 2px solid #333;
+            margin-top: 50px;
+            padding-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .footer-note {
+            margin-top: 30px;
+            padding: 15px;
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .footer-note > div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .footer-note > div {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        #downloadLink {
+            display: none;
+        }
+        
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 968px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+            
+            #receiptContent {
+                padding: 20px;
+            }
+            
+            .amount-value {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1>📝 Generator Priznanice za Avans</h1>
+        
+        <div class="content-wrapper">
+            <!-- FORMA ZA UNOS -->
+            <div class="form-section">
+                <h2>Unesite podatke</h2>
+                
+                <div class="form-group">
+                    <label>Vaše ime (ko prima novac):</label>
+                    <input type="text" id="myName" placeholder="npr. Aleksandar Ćirić" value="Aleksandar Ćirić">
+                </div>
+                
+                <div class="form-group" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 2px solid #667eea;">
+                    <label style="color: #667eea;">📋 Broj priznanice (automatski):</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="receiptNumber" readonly style="background: white; font-weight: bold; font-size: 18px; color: #667eea;">
+                        <button onclick="resetCounter()" style="padding: 10px 20px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">🔄 Resetuj</button>
+                    </div>
+                    <small style="color: #666; margin-top: 5px; display: block;">Automatski se uvećava nakon generisanja slike</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ime klijenta:</label>
+                    <input type="text" id="clientName" placeholder="npr. Petar Petrović" value="">
+                </div>
+                
+                <div class="form-group">
+                    <label>Iznos:</label>
+                    <input type="number" id="amount" placeholder="10000" value="">
+                </div>
+                
+                <div class="form-group">
+                    <label>Valuta:</label>
+                    <select id="currency">
+                        <option value="RSD">RSD (Dinari)</option>
+                        <option value="EUR">EUR (Evri)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Opis usluge/Po osnovu:</label>
+                    <textarea id="description" placeholder="npr. Avans za konsalting usluge, Web dizajn, Popravka računara...">Avans za konsalting usluge</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Datum:</label>
+                    <input type="date" id="date">
+                </div>
+                
+                <div class="form-group">
+                    <label>Mesto:</label>
+                    <input type="text" id="place" placeholder="Beograd" value="Beograd">
+                </div>
+            </div>
+            
+            <!-- PREGLED PRIZNANICE -->
+            <div class="receipt-preview">
+                <div id="receiptContent">
+                    <div class="receipt-header">
+                        <h2>PRIZNANICA ZA AVANS</h2>
+                    </div>
+                    
+                    <div class="info-section">
+                        <div class="info-title">Izdao:</div>
+                        <div class="info-row">
+                            <div class="info-value" style="font-weight: bold;">Prohoreca AG group, Pirot</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <div class="info-title">Primio od:</div>
+                        <div class="info-row">
+                            <div class="info-value" id="displayClientName" style="font-weight: bold;">_________________</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <div class="info-row">
+                            <div class="info-label">Datum:</div>
+                            <div class="info-value" id="displayDate"></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Mesto:</div>
+                            <div class="info-value" id="displayPlace">Beograd</div>
+                        </div>
+                    </div>
+                    
+                    <div class="amount-box">
+                        <div class="amount-label">PRIMLJEN AVANS</div>
+                        <div class="amount-value" id="displayAmount">0,00 RSD</div>
+                        <div class="amount-words" id="displayAmountWords">Unesite iznos</div>
+                    </div>
+                    
+                    <div class="description-box">
+                        <div class="info-label">Po osnovu:</div>
+                        <div class="info-value" id="displayDescription">Avans za konsalting usluge</div>
+                    </div>
+                    
+                    <div class="signature-area">
+                        <div class="signature-box">
+                            <div class="signature-line" style="border-top: none; margin-top: 30px;">
+                                <strong>Primio:</strong><br>
+                                <span id="signatureIssuer" style="font-size: 16px;">Aleksandar Ćirić</span>
+                            </div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="signature-line" style="border-top: none; margin-top: 30px;">
+                                <strong>Isplatio:</strong><br>
+                                <span id="signatureClient" style="font-size: 16px;">_________________</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-note">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Napomena:</strong> Ovaj avans će biti uračunat u konačnu fakturu. 
+                                Priznanica je važeća bez pečata i potpisa.
+                            </div>
+                            <div style="font-weight: bold; color: #667eea; white-space: nowrap; margin-left: 20px;">
+                                Br: <span id="displayReceiptNumber">001/2025</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="generateImage()">📸 Napravi sliku</button>
+            <button class="btn btn-secondary" id="downloadBtn" onclick="downloadImage()" style="display:none;">💾 Preuzmi sliku</button>
+        </div>
+        
+        <div class="success-message" id="successMsg">
+            ✅ Slika je spremna! Kliknite "Preuzmi sliku" pa pošaljite preko Viber/WhatsApp
+        </div>
+        
+        <a id="downloadLink" download="priznanica.png"></a>
+    </div>
+    
+    <script>
+        // LOCAL STORAGE - Brojač priznanica
+        function getReceiptCounter() {
+            const counter = localStorage.getItem('receiptCounter');
+            return counter ? parseInt(counter) : 111;
+        }
+        
+        function setReceiptCounter(value) {
+            localStorage.setItem('receiptCounter', value);
+        }
+        
+        function incrementReceiptCounter() {
+            const current = getReceiptCounter();
+            setReceiptCounter(current + 1);
+            updateReceiptNumber();
+        }
+        
+        function resetCounter() {
+            if (confirm('Da li ste sigurni da želite da resetujete brojač na 1?')) {
+                setReceiptCounter(1);
+                updateReceiptNumber();
+                alert('✅ Brojač je resetovan na 1');
+            }
+        }
+        
+        function updateReceiptNumber() {
+            const counter = getReceiptCounter();
+            const year = new Date().getFullYear();
+            const receiptNum = String(counter).padStart(3, '0') + '/' + year;
+            document.getElementById('receiptNumber').value = receiptNum;
+            document.getElementById('displayReceiptNumber').textContent = receiptNum;
+        }
+        
+        // Inicijalizacija
+        updateReceiptNumber();
+        
+        // Postavi današnji datum
+        document.getElementById('date').valueAsDate = new Date();
+        updateDisplay();
+        
+        // Ažuriraj prikaz kada se menja bilo koje polje
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('input', updateDisplay);
+        });
+        
+        function updateDisplay() {
+            // Osnovi podaci
+            const myName = document.getElementById('myName').value || 'Aleksandar Ćirić';
+            const clientName = document.getElementById('clientName').value || '_________________';
+            const amount = document.getElementById('amount').value;
+            const currency = document.getElementById('currency').value;
+            const description = document.getElementById('description').value || 'Opis usluge';
+            const date = document.getElementById('date').value;
+            const place = document.getElementById('place').value || 'Mesto';
+            
+            // Formatiranje iznosa
+            let formattedAmount = '0,00 ' + currency;
+            if (amount) {
+                formattedAmount = parseFloat(amount).toLocaleString('sr-RS', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }) + ' ' + currency;
+            }
+            
+            // Formatiranje datuma
+            let formattedDate = '';
+            if (date) {
+                const d = new Date(date);
+                formattedDate = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}.`;
+            }
+            
+            // Iznos slovima
+            const amountWords = numberToWords(amount, currency);
+            
+            // Ažuriranje prikaza
+            document.getElementById('displayClientName').textContent = clientName;
+            document.getElementById('displayAmount').textContent = formattedAmount;
+            document.getElementById('displayAmountWords').textContent = amountWords;
+            document.getElementById('displayDescription').textContent = description;
+            document.getElementById('displayDate').textContent = formattedDate;
+            document.getElementById('displayPlace').textContent = place;
+            document.getElementById('signatureIssuer').textContent = myName;
+            document.getElementById('signatureClient').textContent = clientName;
+        }
+        
+        function numberToWords(num, currency) {
+            if (!num || num == 0) return 'Unesite iznos';
+            
+            const ones = ['', 'jedan', 'dva', 'tri', 'četiri', 'pet', 'šest', 'sedam', 'osam', 'devet'];
+            const teens = ['deset', 'jedanaest', 'dvanaest', 'trinaest', 'četrnaest', 'petnaest', 
+                          'šesnaest', 'sedamnaest', 'osamnaest', 'devetnaest'];
+            const tens = ['', '', 'dvadeset', 'trideset', 'četrdeset', 'pedeset', 
+                         'šezdeset', 'sedamdeset', 'osamdeset', 'devedeset'];
+            const hundreds = ['', 'sto', 'dvesto', 'tristo', 'četiristo', 'petsto', 
+                            'šesto', 'sedamsto', 'osamsto', 'devetsto'];
+            
+            num = parseInt(num);
+            if (num >= 1000000) return 'Iznos je prevelik';
+            
+            let result = 'Slovima: ';
+            
+            // Hiljade
+            if (num >= 1000) {
+                const thousands = Math.floor(num / 1000);
+                if (thousands === 1) {
+                    result += 'hiljadu ';
+                } else if (thousands < 5) {
+                    result += ones[thousands] + ' hiljade ';
+                } else {
+                    result += ones[thousands] + ' hiljada ';
+                }
+                num = num % 1000;
+            }
+            
+            // Stotine
+            if (num >= 100) {
+                result += hundreds[Math.floor(num / 100)] + ' ';
+                num = num % 100;
+            }
+            
+            // Desetice i jedinice
+            if (num >= 20) {
+                result += tens[Math.floor(num / 10)] + ' ';
+                num = num % 10;
+            } else if (num >= 10) {
+                result += teens[num - 10] + ' ';
+                num = 0;
+            }
+            
+            if (num > 0) {
+                result += ones[num] + ' ';
+            }
+            
+            result += (currency === 'RSD' ? 'dinara' : 'evra');
+            
+            return result.trim();
+        }
+        
+        let generatedImageUrl = null;
+        
+        function generateImage() {
+            const button = event.target;
+            button.textContent = '⏳ Generišem...';
+            button.disabled = true;
+            
+            const element = document.getElementById('receiptContent');
+            
+            html2canvas(element, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight
+            }).then(canvas => {
+                // Kreiraj sliku
+                generatedImageUrl = canvas.toDataURL('image/png');
+                
+                // Prikaži dugme za preuzimanje
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+                document.getElementById('successMsg').style.display = 'block';
+                
+                // AUTOMATSKI UVEĆAJ BROJAČ
+                incrementReceiptCounter();
+                
+                button.textContent = '✅ Slika napravljena!';
+                button.disabled = false;
+                
+                setTimeout(() => {
+                    button.textContent = '📸 Napravi sliku';
+                }, 2000);
+            });
+        }
+        
+        function downloadImage() {
+            if (generatedImageUrl) {
+                const link = document.getElementById('downloadLink');
+                const receiptNum = document.getElementById('receiptNumber').value.replace(/\//g, '-');
+                link.href = generatedImageUrl;
+                link.download = `priznanica_${receiptNum}.png`;
+                link.click();
+            }
+        }
+    </script>
+</body>
+</html>
