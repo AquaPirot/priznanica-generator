@@ -1,4 +1,4 @@
-const CACHE_NAME = 'priznanica-v1';
+const CACHE_NAME = 'priznanica-v3';
 
 const PRECACHE_URLS = [
     './',
