@@ -3,781 +3,877 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator Priznanice za Avans</title>
+    <title>Priznanica</title>
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#6366f1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Priznanica">
     <link rel="apple-touch-icon" href="icons/icon.svg">
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg:     #f3f4f6;
+            --text:   #1f2937;
+            --accent: #6366f1;
+            --a-lite: #eef2ff;
+            --card:   #ffffff;
+            --border: #e5e7eb;
+            --muted:  #6b7280;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
             min-height: 100vh;
         }
 
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
+        /* ─── SIDEBAR ──────────────────────────────────────────── */
+        .sidebar {
+            width: 270px;
+            flex-shrink: 0;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: sticky;
+            top: 0;
         }
 
-        h1 {
-            text-align: center;
-            color: white;
-            margin-bottom: 10px;
-            font-size: 32px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        /* Install prompt banner */
-        .install-prompt {
-            display: none;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 12px 18px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 14px;
-            display: none;
+        .sidebar-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 9px;
+            font-weight: 800;
+            font-size: 15px;
         }
-        .install-prompt .btn-install {
-            background: white;
-            color: #667eea;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 13px;
+
+        .badge {
+            margin-left: auto;
+            background: var(--a-lite);
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 9px;
+            border-radius: 99px;
         }
-        .install-prompt .btn-dismiss {
-            background: transparent;
-            color: rgba(255,255,255,0.7);
-            border: 1px solid rgba(255,255,255,0.4);
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
+
+        .archive-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 16px;
+            color: var(--muted);
             font-size: 12px;
+            line-height: 1.8;
         }
 
-        .content-wrapper {
+        .archive-item {
+            padding: 11px 13px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            background: #f9fafb;
+            border: 1.5px solid transparent;
+            position: relative;
+            transition: background 0.12s;
+        }
+
+        .archive-item:hover { background: #f1f2f4; }
+
+        .archive-item.active {
+            border-color: var(--accent);
+            background: var(--a-lite);
+        }
+
+        .ai-name {
+            font-weight: 700;
+            font-size: 13px;
+            padding-right: 22px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ai-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .del-btn {
+            position: absolute;
+            right: 7px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #d1d5db;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            transition: color 0.12s;
+        }
+
+        .del-btn:hover { color: #ef4444; }
+
+        /* ─── MAIN ─────────────────────────────────────────────── */
+        .main-wrap {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 20px;
+            grid-template-columns: 350px 1fr;
+            gap: 22px;
+            padding: 24px;
         }
 
-        .form-section {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        /* ─── FORM CARD ─────────────────────────────────────────── */
+        .form-card {
+            background: var(--card);
+            padding: 22px;
+            border-radius: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            height: fit-content;
+            position: sticky;
+            top: 24px;
         }
 
-        .form-section h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 24px;
+        .form-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 18px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .ig { margin-bottom: 14px; }
 
-        .form-group label {
+        label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 5px;
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            background: var(--card);
+            color: var(--text);
+            transition: border-color 0.12s;
+        }
+
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+        textarea { resize: none; }
+
+        .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+        /* ─── BUTTONS ───────────────────────────────────────────── */
+        .btn {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .receipt-preview {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-
-        #receiptContent {
-            background: white;
-            padding: 40px;
-        }
-
-        .receipt-header {
-            text-align: center;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 20px;
-            margin-bottom: 25px;
-        }
-
-        .receipt-header h2 {
-            font-size: 28px;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .receipt-number {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .info-section {
-            margin-bottom: 25px;
-        }
-
-        .info-title {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 16px;
-            text-transform: uppercase;
-        }
-
-        .info-row {
-            display: flex;
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .info-label {
-            font-weight: 600;
-            width: 150px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .info-value {
-            flex: 1;
-            color: #333;
-            font-size: 14px;
-        }
-
-        .amount-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 25px;
             border-radius: 10px;
-            margin: 25px 0;
-            text-align: center;
-            color: white;
-        }
-
-        .amount-label {
+            border: none;
+            font-weight: 700;
             font-size: 14px;
-            margin-bottom: 10px;
-            opacity: 0.9;
-        }
-
-        .amount-value {
-            font-size: 42px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .amount-words {
-            font-size: 14px;
-            font-style: italic;
-            opacity: 0.9;
-        }
-
-        .description-box {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .description-box .info-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.1s, opacity 0.12s;
             margin-bottom: 8px;
         }
 
-        .description-box .info-value {
-            line-height: 1.6;
-        }
+        .btn:last-child { margin-bottom: 0; }
+        .btn:active { transform: scale(0.98); }
 
-        .signature-area {
-            margin-top: 40px;
+        .btn-primary   { background: var(--accent); color: white; }
+        .btn-secondary { background: var(--bg); color: var(--text); }
+        .btn-green     { background: #10b981; color: white; flex: 1; }
+        .btn-blue      { background: #0ea5e9; color: white; flex: 1; }
+
+        .action-row {
             display: flex;
-            justify-content: space-between;
-        }
-
-        .signature-box {
-            width: 45%;
-            text-align: center;
-        }
-
-        .signature-line {
-            border-top: 2px solid #333;
-            margin-top: 50px;
-            padding-top: 10px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .footer-note {
-            margin-top: 30px;
-            padding: 15px;
-            background: #fff9e6;
-            border-left: 4px solid #ffc107;
-            font-size: 11px;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .footer-note > div {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
             gap: 10px;
+            margin-top: 18px;
         }
 
-        @media (max-width: 600px) {
-            .footer-note > div {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+        .action-row .btn {
+            flex: 1;
+            width: auto;
+            margin-bottom: 0;
+            padding: 12px 10px;
         }
 
-        .button-group {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 20px;
-            flex-wrap: wrap;
+        /* ─── RECEIPT PREVIEW ───────────────────────────────────── */
+        .preview-wrap { display: flex; flex-direction: column; }
+
+        #receipt-box {
+            background: #fff;
+            padding: 48px;
+            border-radius: 4px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.09);
+            color: #111827;
         }
 
-        .btn {
-            padding: 15px 40px;
-            font-size: 18px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        .r-eyebrow {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 4px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        .btn-share {
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            color: white;
-        }
-
-        .btn-share:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
-        }
-
-        #downloadLink {
-            display: none;
-        }
-
-        .success-message {
-            background: #4CAF50;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
+        .r-heading {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #9ca3af;
             text-align: center;
-            margin-top: 20px;
+            text-transform: uppercase;
+            margin-bottom: 36px;
+        }
+
+        .r-person { margin-bottom: 22px; }
+
+        .r-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .r-hr {
+            border: none;
+            border-top: 1px solid #f1f2f4;
+            margin: 22px 0;
+        }
+
+        .r-amount-box {
+            background: #f9fafb;
+            padding: 28px;
+            border-radius: 14px;
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .r-amount-val {
+            font-size: 40px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .r-amount-words {
+            font-size: 12px;
+            color: var(--muted);
+            font-style: italic;
+            margin-top: 6px;
+        }
+
+        .r-reason {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+
+        .r-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .r-meta-val {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+
+        .r-footer {
+            font-size: 11px;
+            color: #9ca3af;
+            text-align: center;
+            padding-top: 16px;
+            border-top: 1px solid #f1f2f4;
+            margin-top: 22px;
+        }
+
+        /* ─── TOAST ─────────────────────────────────────────────── */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 11px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s;
+            z-index: 9999;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .toast.show { opacity: 1; }
+        .toast.ok  { background: #1f2937; color: white; }
+        .toast.err { background: #ef4444; color: white; }
+
+        /* ─── MOBILE FAB ─────────────────────────────────────────── */
+        .fab {
             display: none;
-            animation: slideDown 0.3s ease;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(99,102,241,0.45);
+            z-index: 100;
+            transition: transform 0.1s;
         }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .fab:active { transform: scale(0.94); }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 150;
         }
 
-        @media (max-width: 968px) {
-            .content-wrapper {
+        .overlay.open { display: block; }
+
+        /* ─── RESPONSIVE ─────────────────────────────────────────── */
+        @media (max-width: 900px) {
+            body { display: block; }
+
+            .sidebar {
+                position: fixed;
+                left: -290px;
+                top: 0;
+                height: 100%;
+                z-index: 200;
+                transition: left 0.25s cubic-bezier(0.4,0,0.2,1);
+                box-shadow: none;
+            }
+
+            .sidebar.open {
+                left: 0;
+                box-shadow: 6px 0 24px rgba(0,0,0,0.14);
+            }
+
+            .fab { display: flex; }
+
+            .container {
                 grid-template-columns: 1fr;
+                padding: 14px;
+                gap: 14px;
             }
 
-            #receiptContent {
-                padding: 20px;
-            }
+            .form-card { position: static; }
 
-            .amount-value {
-                font-size: 32px;
-            }
+            #receipt-box { padding: 28px; }
+
+            .r-amount-val { font-size: 28px; }
+
+            .action-row { flex-direction: column; }
+
+            .toast { bottom: 20px; }
         }
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <h1>📝 Generator Priznanice za Avans</h1>
 
-        <!-- PWA Install Prompt -->
-        <div class="install-prompt" id="installPrompt">
-            <span>📱 Instalirajte aplikaciju za brz pristup sa telefona!</span>
-            <button class="btn-install" onclick="installApp()">Instaliraj</button>
-            <button class="btn-dismiss" onclick="dismissInstall()">✕</button>
-        </div>
+<!-- ─── SIDEBAR ───────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <i data-lucide="archive" style="width:18px;height:18px;"></i>
+        Arhiva
+        <span class="badge" id="archiveBadge">0</span>
+    </div>
+    <div class="archive-list" id="archiveList"></div>
+</aside>
 
-        <div class="content-wrapper">
-            <!-- FORMA ZA UNOS -->
-            <div class="form-section">
-                <h2>Unesite podatke</h2>
+<!-- Mobile backdrop -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
-                <div class="form-group">
-                    <label>Vaše ime (ko prima novac):</label>
-                    <input type="text" id="myName" placeholder="npr. Aleksandar Ćirić" value="Aleksandar Ćirić">
+<!-- ─── MAIN ──────────────────────────────────────────────────────── -->
+<div class="main-wrap">
+    <div class="container">
+
+        <!-- FORMA -->
+        <div class="form-card">
+            <div class="form-title">Nova priznanica</div>
+
+            <div class="ig">
+                <label>Novac primio</label>
+                <input type="text" id="issuerInp" placeholder="Tvoje ime i prezime">
+            </div>
+
+            <div class="ig">
+                <label>Novac uplatio</label>
+                <input type="text" id="clientInp" placeholder="Ime klijenta">
+            </div>
+
+            <div class="two">
+                <div class="ig">
+                    <label>Iznos</label>
+                    <input type="number" id="amountInp" placeholder="0" min="0">
                 </div>
-
-                <div class="form-group" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 2px solid #667eea;">
-                    <label style="color: #667eea;">📋 Broj priznanice (automatski):</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="text" id="receiptNumber" readonly style="background: white; font-weight: bold; font-size: 18px; color: #667eea;">
-                        <button onclick="resetCounter()" style="padding: 10px 20px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">🔄 Resetuj</button>
-                    </div>
-                    <small style="color: #666; margin-top: 5px; display: block;">Automatski se uvećava nakon generisanja slike</small>
-                </div>
-
-                <div class="form-group">
-                    <label>Ime klijenta:</label>
-                    <input type="text" id="clientName" placeholder="npr. Petar Petrović" value="">
-                </div>
-
-                <div class="form-group">
-                    <label>Iznos:</label>
-                    <input type="number" id="amount" placeholder="10000" value="">
-                </div>
-
-                <div class="form-group">
-                    <label>Valuta:</label>
-                    <select id="currency">
-                        <option value="RSD">RSD (Dinari)</option>
-                        <option value="EUR">EUR (Evri)</option>
+                <div class="ig">
+                    <label>Valuta</label>
+                    <select id="currInp">
+                        <option value="RSD">RSD</option>
+                        <option value="EUR">EUR</option>
                     </select>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Opis usluge/Po osnovu:</label>
-                    <textarea id="description" placeholder="npr. Avans za konsalting usluge, Web dizajn, Popravka računara...">Avans za konsalting usluge</textarea>
+            <div class="ig">
+                <label>Svrha</label>
+                <textarea id="reasonInp" rows="2" placeholder="Npr. Avans za izradu pergole"></textarea>
+            </div>
+
+            <div class="two">
+                <div class="ig">
+                    <label>Mesto</label>
+                    <input type="text" id="placeInp" placeholder="Pirot">
                 </div>
-
-                <div class="form-group">
-                    <label>Datum:</label>
-                    <input type="date" id="date">
-                </div>
-
-                <div class="form-group">
-                    <label>Mesto:</label>
-                    <input type="text" id="place" placeholder="Beograd" value="Beograd">
+                <div class="ig">
+                    <label>Datum</label>
+                    <input type="date" id="dateInp">
                 </div>
             </div>
 
-            <!-- PREGLED PRIZNANICE -->
-            <div class="receipt-preview">
-                <div id="receiptContent">
-                    <div class="receipt-header">
-                        <h2>PRIZNANICA ZA AVANS</h2>
-                    </div>
+            <hr class="divider">
 
-                    <div class="info-section">
-                        <div class="info-title">Izdao:</div>
-                        <div class="info-row">
-                            <div class="info-value" style="font-weight: bold;">Prohoreca AG group, Pirot</div>
-                        </div>
-                    </div>
+            <button class="btn btn-primary" onclick="saveToArchive()">
+                <i data-lucide="bookmark-check" style="width:16px;height:16px;"></i>
+                Sačuvaj u arhivu
+            </button>
+            <button class="btn btn-secondary" onclick="newReceipt()">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                Nova priznanica
+            </button>
+        </div>
 
-                    <div class="info-section">
-                        <div class="info-title">Primio od:</div>
-                        <div class="info-row">
-                            <div class="info-value" id="displayClientName" style="font-weight: bold;">_________________</div>
-                        </div>
-                    </div>
+        <!-- PREVIEW -->
+        <div class="preview-wrap">
+            <div id="receipt-box">
+                <div class="r-heading">Priznanica za primljeni avans</div>
 
-                    <div class="info-section">
-                        <div class="info-row">
-                            <div class="info-label">Datum:</div>
-                            <div class="info-value" id="displayDate"></div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Mesto:</div>
-                            <div class="info-value" id="displayPlace">Beograd</div>
-                        </div>
-                    </div>
+                <div class="r-person">
+                    <div class="r-eyebrow">Novac primio</div>
+                    <div class="r-name" id="dispIssuer">—</div>
+                </div>
 
-                    <div class="amount-box">
-                        <div class="amount-label">PRIMLJEN AVANS</div>
-                        <div class="amount-value" id="displayAmount">0,00 RSD</div>
-                        <div class="amount-words" id="displayAmountWords">Unesite iznos</div>
-                    </div>
+                <div class="r-person">
+                    <div class="r-eyebrow">Novac uplatio</div>
+                    <div class="r-name" id="dispClient">—</div>
+                </div>
 
-                    <div class="description-box">
-                        <div class="info-label">Po osnovu:</div>
-                        <div class="info-value" id="displayDescription">Avans za konsalting usluge</div>
-                    </div>
+                <hr class="r-hr">
 
-                    <div class="signature-area">
-                        <div class="signature-box">
-                            <div class="signature-line" style="border-top: none; margin-top: 30px;">
-                                <strong>Primio:</strong><br>
-                                <span id="signatureIssuer" style="font-size: 16px;">Aleksandar Ćirić</span>
-                            </div>
-                        </div>
-                        <div class="signature-box">
-                            <div class="signature-line" style="border-top: none; margin-top: 30px;">
-                                <strong>Isplatio:</strong><br>
-                                <span id="signatureClient" style="font-size: 16px;">_________________</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="r-amount-box">
+                    <div class="r-amount-val" id="dispAmount">0,00 RSD</div>
+                    <div class="r-amount-words" id="dispWords">nula dinara</div>
+                </div>
 
-                    <div class="footer-note">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong>Napomena:</strong> Ovaj avans će biti uračunat u konačnu fakturu.
-                                Priznanica je važeća bez pečata i potpisa.
-                            </div>
-                            <div style="font-weight: bold; color: #667eea; white-space: nowrap; margin-left: 20px;">
-                                Br: <span id="displayReceiptNumber">001/2025</span>
-                            </div>
-                        </div>
+                <div class="r-eyebrow">Svrha</div>
+                <div class="r-reason" id="dispReason">—</div>
+
+                <div class="r-meta">
+                    <div>
+                        <div class="r-eyebrow">Mesto</div>
+                        <div class="r-meta-val" id="dispPlace">—</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="r-eyebrow">Datum</div>
+                        <div class="r-meta-val" id="dispDate">—</div>
                     </div>
                 </div>
+
+                <div class="r-footer" id="dispFooter">Br. —</div>
+            </div>
+
+            <div class="action-row">
+                <button class="btn btn-green" onclick="downloadPng()">
+                    <i data-lucide="image-down" style="width:16px;height:16px;"></i>
+                    Preuzmi sliku
+                </button>
+                <button class="btn btn-blue" id="shareBtn" onclick="shareImage()" style="display:none;">
+                    <i data-lucide="share-2" style="width:16px;height:16px;"></i>
+                    Podeli
+                </button>
             </div>
         </div>
 
-        <div class="button-group">
-            <button class="btn btn-primary" onclick="generateImage()">📸 Napravi sliku</button>
-            <button class="btn btn-secondary" id="downloadBtn" onclick="downloadImage()" style="display:none;">💾 Preuzmi</button>
-            <button class="btn btn-share" id="shareBtn" onclick="shareImage()" style="display:none;">📤 Podeli</button>
-        </div>
-
-        <div class="success-message" id="successMsg">
-            ✅ Slika je spremna! Kliknite <strong>Podeli</strong> da pošaljete direktno na Viber/WhatsApp
-        </div>
-
-        <a id="downloadLink" download="priznanica.png"></a>
     </div>
+</div>
 
-    <script>
-        // ─── LOCAL STORAGE - Brojač priznanica ───────────────────────────────────
-        function getReceiptCounter() {
-            const counter = localStorage.getItem('receiptCounter');
-            return counter ? parseInt(counter) : 111;
+<!-- FAB za arhivu na mobilnom -->
+<button class="fab" id="fab" onclick="openSidebar()" title="Arhiva">
+    <i data-lucide="archive" style="width:20px;height:20px;"></i>
+</button>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let archive = JSON.parse(localStorage.getItem('priv_archive') || '[]');
+let activeId = null;
+let cachedCanvas = null;
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+lucide.createIcons();
+
+function init() {
+    document.getElementById('dateInp').valueAsDate = new Date();
+    document.getElementById('issuerInp').value = localStorage.getItem('last_issuer') || '';
+    document.getElementById('placeInp').value  = localStorage.getItem('last_place')  || '';
+
+    ['issuerInp','clientInp','amountInp','currInp','reasonInp','placeInp','dateInp']
+        .forEach(id => document.getElementById(id).addEventListener('input', () => {
+            cachedCanvas = null;
+            updatePreview();
+        }));
+
+    if (navigator.share) {
+        document.getElementById('shareBtn').style.display = '';
+    }
+
+    renderArchive();
+    updatePreview();
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+}
+
+// ─── PREVIEW ─────────────────────────────────────────────────────────────────
+function updatePreview() {
+    const issuer = val('issuerInp') || '—';
+    const client = val('clientInp') || '—';
+    const amount = val('amountInp') || '0';
+    const curr   = val('currInp');
+    const reason = val('reasonInp') || '—';
+    const place  = val('placeInp')  || '—';
+    const date   = val('dateInp');
+
+    const fmt = parseFloat(amount).toLocaleString('sr-RS', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+    setText('dispIssuer', issuer);
+    setText('dispClient', client);
+    setText('dispAmount', `${fmt} ${curr}`);
+    setText('dispWords',  `Slovima: ${numToWords(amount, curr)}`);
+    setText('dispReason', reason);
+    setText('dispPlace',  place);
+    setText('dispDate',   fmtDate(date));
+
+    const num = activeId ? getReceiptNum(activeId) : 'Novo';
+    setText('dispFooter', `Br. ${num}`);
+}
+
+function val(id) { return document.getElementById(id).value; }
+function setText(id, t) { document.getElementById(id).textContent = t; }
+
+// ─── ARHIVA ───────────────────────────────────────────────────────────────────
+function saveToArchive() {
+    const issuer = val('issuerInp').trim();
+    const client = val('clientInp').trim();
+
+    if (!issuer || !client) {
+        toast('Unesite ko je primio i ko je uplatio.', 'err');
+        return;
+    }
+
+    const data = {
+        id:     activeId || Date.now(),
+        num:    activeId ? (archive.find(a => a.id === activeId)?.num || genNum()) : genNum(),
+        issuer,
+        client,
+        amount: val('amountInp'),
+        curr:   val('currInp'),
+        reason: val('reasonInp'),
+        place:  val('placeInp'),
+        date:   val('dateInp')
+    };
+
+    localStorage.setItem('last_issuer', data.issuer);
+    localStorage.setItem('last_place',  data.place);
+
+    if (activeId) {
+        const i = archive.findIndex(a => a.id === activeId);
+        if (i !== -1) archive[i] = data;
+    } else {
+        archive.unshift(data);
+        activeId = data.id;
+    }
+
+    persist();
+    renderArchive();
+    updatePreview();
+    toast('Sačuvano ✓');
+}
+
+function renderArchive() {
+    const list = document.getElementById('archiveList');
+    list.innerHTML = '';
+
+    document.getElementById('archiveBadge').textContent = archive.length;
+
+    if (archive.length === 0) {
+        list.innerHTML = '<div class="empty-state">Još nema sačuvanih<br>priznanica</div>';
+        return;
+    }
+
+    archive.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'archive-item' + (activeId === item.id ? ' active' : '');
+        div.onclick = () => loadItem(item.id);
+
+        const fmtAmt  = parseFloat(item.amount || 0).toLocaleString('sr-RS', { minimumFractionDigits: 2 });
+        const fmtD    = fmtDate(item.date);
+        const numDisp = item.num ? `#${item.num} · ` : '';
+
+        div.innerHTML = `
+            <button class="del-btn" onclick="deleteItem(event,${item.id})" title="Obriši">
+                <i data-lucide="x" style="width:13px;height:13px;"></i>
+            </button>
+            <div class="ai-name">${esc(item.client || 'Bez imena')}</div>
+            <div class="ai-sub">${numDisp}${fmtAmt} ${item.curr} · ${fmtD}</div>
+        `;
+        list.appendChild(div);
+    });
+
+    lucide.createIcons();
+}
+
+function loadItem(id) {
+    activeId = id;
+    const item = archive.find(a => a.id === id);
+    if (!item) return;
+
+    document.getElementById('issuerInp').value = item.issuer || '';
+    document.getElementById('clientInp').value = item.client || '';
+    document.getElementById('amountInp').value = item.amount || '';
+    document.getElementById('currInp').value   = item.curr   || 'RSD';
+    document.getElementById('reasonInp').value = item.reason || '';
+    document.getElementById('placeInp').value  = item.place  || '';
+    document.getElementById('dateInp').value   = item.date   || '';
+
+    cachedCanvas = null;
+    updatePreview();
+    renderArchive();
+    closeSidebar();
+}
+
+function deleteItem(e, id) {
+    e.stopPropagation();
+    if (!confirm('Obrisati ovu priznanicu iz arhive?')) return;
+    archive = archive.filter(a => a.id !== id);
+    if (activeId === id) newReceipt();
+    persist();
+    renderArchive();
+    toast('Obrisano');
+}
+
+function newReceipt() {
+    activeId = null;
+    cachedCanvas = null;
+    ['clientInp','amountInp','reasonInp'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('dateInp').valueAsDate = new Date();
+    updatePreview();
+    renderArchive();
+}
+
+function persist() {
+    localStorage.setItem('priv_archive', JSON.stringify(archive));
+}
+
+// Generise stabilan redni broj (ne menja se brisanjem)
+function genNum() {
+    const next = (parseInt(localStorage.getItem('receipt_seq') || '0')) + 1;
+    localStorage.setItem('receipt_seq', next);
+    return String(next).padStart(3, '0');
+}
+
+function getReceiptNum(id) {
+    return archive.find(a => a.id === id)?.num || '???';
+}
+
+// ─── DOWNLOAD / SHARE ────────────────────────────────────────────────────────
+function makeCanvas() {
+    return html2canvas(document.getElementById('receipt-box'), {
+        scale: 3,
+        backgroundColor: '#ffffff',
+        logging: false
+    });
+}
+
+function downloadPng() {
+    const btn = event.currentTarget;
+    btn.disabled = true;
+
+    makeCanvas().then(canvas => {
+        cachedCanvas = canvas;
+        const client = val('clientInp').replace(/\s+/g, '-').toLowerCase() || 'priznanica';
+        const num    = activeId ? getReceiptNum(activeId) : 'novo';
+        const link   = document.createElement('a');
+        link.download = `priznanica-${client}-${num}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        toast('Slika preuzeta ✓');
+    }).finally(() => { btn.disabled = false; });
+}
+
+async function shareImage() {
+    try {
+        const canvas = cachedCanvas || await makeCanvas();
+        cachedCanvas = canvas;
+
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        const client = val('clientInp') || 'priznanica';
+        const num    = activeId ? getReceiptNum(activeId) : 'novo';
+        const file   = new File([blob], `priznanica-${client}-${num}.png`, { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ title: 'Priznanica za avans', files: [file] });
+        } else {
+            downloadPng();
         }
+    } catch (err) {
+        if (err.name !== 'AbortError') downloadPng();
+    }
+}
 
-        function setReceiptCounter(value) {
-            localStorage.setItem('receiptCounter', value);
-        }
+// ─── MOBILE SIDEBAR ───────────────────────────────────────────────────────────
+function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+}
 
-        function incrementReceiptCounter() {
-            const current = getReceiptCounter();
-            setReceiptCounter(current + 1);
-            updateReceiptNumber();
-        }
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+}
 
-        function resetCounter() {
-            if (confirm('Da li ste sigurni da želite da resetujete brojač na 1?')) {
-                setReceiptCounter(1);
-                updateReceiptNumber();
-                alert('✅ Brojač je resetovan na 1');
-            }
-        }
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let _tt = null;
+function toast(msg, type = 'ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${type} show`;
+    clearTimeout(_tt);
+    _tt = setTimeout(() => el.classList.remove('show'), 2500);
+}
 
-        function updateReceiptNumber() {
-            const counter = getReceiptCounter();
-            const year = new Date().getFullYear();
-            const receiptNum = String(counter).padStart(3, '0') + '/' + year;
-            document.getElementById('receiptNumber').value = receiptNum;
-            document.getElementById('displayReceiptNumber').textContent = receiptNum;
-        }
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function fmtDate(str) {
+    if (!str) return '—';
+    // T12:00:00 sprečava timezone bug koji pomera dan za -1
+    const d = new Date(str + 'T12:00:00');
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('sr-RS');
+}
 
-        // ─── FORM DATA PERSISTENCE ───────────────────────────────────────────────
-        const SAVED_FIELDS = ['myName', 'clientName', 'amount', 'currency', 'description', 'place'];
+function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-        function saveFormData() {
-            SAVED_FIELDS.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) localStorage.setItem('form_' + id, el.value);
-            });
-        }
+// ─── NUMBER TO WORDS (ispravka za 10.000+) ────────────────────────────────────
+function numToWords(n, curr) {
+    if (!n || parseFloat(n) == 0) return 'nula ' + (curr === 'RSD' ? 'dinara' : 'evra');
 
-        function loadFormData() {
-            SAVED_FIELDS.forEach(id => {
-                const val = localStorage.getItem('form_' + id);
-                if (val !== null && val !== '') {
-                    const el = document.getElementById(id);
-                    if (el) el.value = val;
-                }
-            });
-        }
+    const units    = ['','jedan','dva','tri','četiri','pet','šest','sedam','osam','devet'];
+    const teens    = ['deset','jedanaest','dvanaest','trinaest','četrnaest','petnaest',
+                      'šesnaest','sedamnaest','osamnaest','devetnaest'];
+    const tens     = ['','','dvadeset','trideset','četrdeset','pedeset',
+                      'šezdeset','sedamdeset','osamdeset','devedeset'];
+    const hundreds = ['','sto','dvesta','trista','četiristo','petsto',
+                      'šesto','sedamsto','osamsto','devetsto'];
 
-        // ─── INICIJALIZACIJA ─────────────────────────────────────────────────────
-        updateReceiptNumber();
-        loadFormData();
-        document.getElementById('date').valueAsDate = new Date();
-        updateDisplay();
+    // Pretvara broj 1-999 u reči
+    function tri(num) {
+        let out = '';
+        if (num >= 100) { out += hundreds[Math.floor(num / 100)] + ' '; num %= 100; }
+        if (num >= 20)  { out += tens[Math.floor(num / 10)] + ' '; num %= 10; }
+        else if (num >= 10) { out += teens[num - 10] + ' '; num = 0; }
+        if (num > 0) out += units[num] + ' ';
+        return out;
+    }
 
-        // Ažuriraj prikaz i sačuvaj podatke kada se menja bilo koje polje
-        document.querySelectorAll('input, select, textarea').forEach(element => {
-            element.addEventListener('input', () => {
-                updateDisplay();
-                saveFormData();
-            });
-        });
+    let num = parseInt(n);
+    if (num >= 1000000) return 'iznos prevelik za prikaz';
 
-        function updateDisplay() {
-            const myName = document.getElementById('myName').value || 'Aleksandar Ćirić';
-            const clientName = document.getElementById('clientName').value || '_________________';
-            const amount = document.getElementById('amount').value;
-            const currency = document.getElementById('currency').value;
-            const description = document.getElementById('description').value || 'Opis usluge';
-            const date = document.getElementById('date').value;
-            const place = document.getElementById('place').value || 'Mesto';
+    let out = '';
 
-            // Formatiranje iznosa
-            let formattedAmount = '0,00 ' + currency;
-            if (amount) {
-                formattedAmount = parseFloat(amount).toLocaleString('sr-RS', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }) + ' ' + currency;
-            }
+    if (num >= 1000) {
+        const th = Math.floor(num / 1000);
+        if      (th === 1) out += 'hiljadu ';
+        else if (th === 2) out += 'dve hiljade ';
+        else if (th < 5)   out += units[th] + ' hiljade ';
+        else if (th < 10)  out += units[th] + ' hiljada ';
+        else               out += tri(th) + 'hiljada ';   // ← fix za 10k+
+        num %= 1000;
+    }
 
-            // Formatiranje datuma
-            let formattedDate = '';
-            if (date) {
-                const d = new Date(date);
-                formattedDate = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}.`;
-            }
+    out += tri(num);
+    return out.trim() + ' ' + (curr === 'RSD' ? 'dinara' : 'evra');
+}
 
-            const amountWords = numberToWords(amount, currency);
-
-            document.getElementById('displayClientName').textContent = clientName;
-            document.getElementById('displayAmount').textContent = formattedAmount;
-            document.getElementById('displayAmountWords').textContent = amountWords;
-            document.getElementById('displayDescription').textContent = description;
-            document.getElementById('displayDate').textContent = formattedDate;
-            document.getElementById('displayPlace').textContent = place;
-            document.getElementById('signatureIssuer').textContent = myName;
-            document.getElementById('signatureClient').textContent = clientName;
-        }
-
-        // ─── BROJ SLOVIMA (ispravka za hiljade >= 10) ────────────────────────────
-        function numberToWords(num, currency) {
-            if (!num || num == 0) return 'Unesite iznos';
-
-            const ones = ['', 'jedan', 'dva', 'tri', 'četiri', 'pet', 'šest', 'sedam', 'osam', 'devet'];
-            const teens = ['deset', 'jedanaest', 'dvanaest', 'trinaest', 'četrnaest', 'petnaest',
-                          'šesnaest', 'sedamnaest', 'osamnaest', 'devetnaest'];
-            const tens = ['', '', 'dvadeset', 'trideset', 'četrdeset', 'pedeset',
-                         'šezdeset', 'sedamdeset', 'osamdeset', 'devedeset'];
-            const hundreds = ['', 'sto', 'dvesto', 'tristo', 'četiristo', 'petsto',
-                            'šesto', 'sedamsto', 'osamsto', 'devetsto'];
-
-            // Pomoćna funkcija: konvertuje 1-999 u reči
-            function threeToWords(n) {
-                let w = '';
-                if (n >= 100) { w += hundreds[Math.floor(n / 100)] + ' '; n = n % 100; }
-                if (n >= 20) { w += tens[Math.floor(n / 10)] + ' '; n = n % 10; }
-                else if (n >= 10) { w += teens[n - 10] + ' '; n = 0; }
-                if (n > 0) w += ones[n] + ' ';
-                return w;
-            }
-
-            num = parseInt(num);
-            if (num >= 1000000) return 'Iznos je prevelik';
-
-            let result = 'Slovima: ';
-
-            // Hiljade (1 - 999)
-            if (num >= 1000) {
-                const thousands = Math.floor(num / 1000);
-                if (thousands === 1) {
-                    result += 'hiljadu ';
-                } else if (thousands === 2) {
-                    result += 'dve hiljade ';
-                } else if (thousands < 5) {
-                    result += ones[thousands] + ' hiljade ';
-                } else if (thousands < 10) {
-                    result += ones[thousands] + ' hiljada ';
-                } else {
-                    result += threeToWords(thousands) + 'hiljada ';
-                }
-                num = num % 1000;
-            }
-
-            result += threeToWords(num);
-            result += (currency === 'RSD' ? 'dinara' : 'evra');
-
-            return result.trim();
-        }
-
-        // ─── GENERISANJE I DELJENJE SLIKE ────────────────────────────────────────
-        let generatedImageUrl = null;
-
-        function generateImage() {
-            const button = event.target;
-            button.textContent = '⏳ Generišem...';
-            button.disabled = true;
-
-            const element = document.getElementById('receiptContent');
-
-            html2canvas(element, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                windowWidth: element.scrollWidth,
-                windowHeight: element.scrollHeight
-            }).then(canvas => {
-                generatedImageUrl = canvas.toDataURL('image/png');
-
-                document.getElementById('downloadBtn').style.display = 'inline-block';
-                document.getElementById('shareBtn').style.display = 'inline-block';
-                document.getElementById('successMsg').style.display = 'block';
-
-                // Prikaži share dugme samo ako browser podržava Web Share API
-                if (!navigator.share) {
-                    document.getElementById('shareBtn').style.display = 'none';
-                }
-
-                incrementReceiptCounter();
-
-                button.textContent = '✅ Slika napravljena!';
-                button.disabled = false;
-
-                setTimeout(() => {
-                    button.textContent = '📸 Napravi sliku';
-                }, 2000);
-            });
-        }
-
-        function downloadImage() {
-            if (generatedImageUrl) {
-                const link = document.getElementById('downloadLink');
-                const receiptNum = document.getElementById('receiptNumber').value.replace(/\//g, '-');
-                link.href = generatedImageUrl;
-                link.download = `priznanica_${receiptNum}.png`;
-                link.click();
-            }
-        }
-
-        async function shareImage() {
-            if (!generatedImageUrl) return;
-            try {
-                const res = await fetch(generatedImageUrl);
-                const blob = await res.blob();
-                const receiptNum = document.getElementById('receiptNumber').value.replace(/\//g, '-');
-                const file = new File([blob], `priznanica_${receiptNum}.png`, { type: 'image/png' });
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        title: 'Priznanica za avans',
-                        text: `Priznanica br. ${document.getElementById('receiptNumber').value}`,
-                        files: [file]
-                    });
-                } else {
-                    downloadImage();
-                }
-            } catch (err) {
-                if (err.name !== 'AbortError') downloadImage();
-            }
-        }
-
-        // ─── PWA INSTALL PROMPT ──────────────────────────────────────────────────
-        let deferredInstallPrompt = null;
-
-        window.addEventListener('beforeinstallprompt', e => {
-            e.preventDefault();
-            deferredInstallPrompt = e;
-            if (!localStorage.getItem('installDismissed')) {
-                document.getElementById('installPrompt').style.display = 'flex';
-            }
-        });
-
-        async function installApp() {
-            if (!deferredInstallPrompt) return;
-            deferredInstallPrompt.prompt();
-            await deferredInstallPrompt.userChoice;
-            deferredInstallPrompt = null;
-            document.getElementById('installPrompt').style.display = 'none';
-        }
-
-        function dismissInstall() {
-            document.getElementById('installPrompt').style.display = 'none';
-            localStorage.setItem('installDismissed', 'true');
-        }
-
-        // ─── SERVICE WORKER REGISTRACIJA ─────────────────────────────────────────
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('SW registrovan:', reg.scope))
-                    .catch(err => console.log('SW greška:', err));
-            });
-        }
-    </script>
+init();
+</script>
 </body>
 </html>
